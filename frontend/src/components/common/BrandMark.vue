@@ -1,0 +1,1 @@
+<template><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" role="img"><circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="20" cy="20" rx="18" ry="7" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-24 20 20)"/><circle cx="20" cy="20" r="4" fill="currentColor"/></svg></span></template>

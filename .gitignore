@@ -1,0 +1,39 @@
+# Java / Maven
+backend/**/target/
+backend/.idea/
+backend/**/*.iml
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# Vue / Node
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.vite/
+frontend/.env*
+!frontend/.env.example
+
+# Nginx runtime files and generated frontend deployment
+nginx-1.18.0/logs/
+nginx-1.18.0/temp/
+nginx-1.18.0/nginx.pid
+nginx-1.18.0/html/hmdp/
+nginx-1.18.0/html/hmdp-legacy/
+
+# Persistent user uploads
+uploads/
+
+# IDE / operating system
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
+Thumbs.db
+
+# Local agent work products
+.superpowers/
+show-me-frontend-architecture.html
