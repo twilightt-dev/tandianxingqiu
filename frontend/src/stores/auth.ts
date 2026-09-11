@@ -1,7 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import * as userApi from '@/api/user'
-import type { User } from '@/types/api'
+import { beginLogout, endLogout } from '@/api/http'
+import type { TokenVO, User } from '@/types/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null)
@@ -13,14 +14,41 @@ export const useAuthStore = defineStore('auth', () => {
     if (!raw) { user.value = null; return }
     try { user.value = JSON.parse(raw) as User } catch { sessionStorage.removeItem('userInfo'); user.value = null }
   }
-  function setSession(newToken: string, newUser?: User) {
-    token.value = newToken; sessionStorage.setItem('token', newToken)
+  function setSession(tokens: TokenVO, newUser?: User) {
+    token.value = tokens.accessToken
+    sessionStorage.setItem('token', tokens.accessToken)
+    sessionStorage.setItem('refreshToken', tokens.refreshToken)
+    sessionStorage.setItem('tokenType', tokens.tokenType)
+    sessionStorage.setItem('accessTtl', String(tokens.accessTtl))
     if (newUser !== undefined) { user.value = newUser; sessionStorage.setItem('userInfo', JSON.stringify(newUser)) }
   }
   async function fetchCurrentUser() { user.value = await userApi.getCurrentUser(); sessionStorage.setItem('userInfo', JSON.stringify(user.value)); return user.value }
-  async function signIn(form: userApi.LoginForm) { const jwt = await userApi.login(form); setSession(jwt); return fetchCurrentUser() }
-  async function signOut() { try { if (token.value) await userApi.logout() } finally { clearSession() } }
-  function clearSession() { token.value = null; user.value = null; sessionStorage.removeItem('token'); sessionStorage.removeItem('userInfo') }
+  async function signIn(form: userApi.LoginForm) {
+    const tokens = await userApi.login(form)
+    setSession(tokens)
+    try {
+      return await fetchCurrentUser()
+    } catch (error) {
+      if ((error as { code?: number }).code === 401) throw error
+      user.value = null
+      sessionStorage.removeItem('userInfo')
+      return null
+    }
+  }
+  async function signOut() {
+    const refreshToken = await beginLogout()
+    try {
+      if (refreshToken) await userApi.logout(refreshToken)
+    } finally {
+      clearSession()
+      endLogout()
+    }
+  }
+  function clearSession() {
+    token.value = null
+    user.value = null
+    for (const key of ['token', 'refreshToken', 'tokenType', 'accessTtl', 'userInfo']) sessionStorage.removeItem(key)
+  }
   restore()
   return { token, user, isAuthenticated, restore, setSession, fetchCurrentUser, signIn, signOut, clearSession }
 })

@@ -1,5 +1,5 @@
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
-import type { ApiResult } from '@/types/api'
+import type { ApiResult, TokenVO } from '@/types/api'
 
 export class ApiError extends Error {
   code?: number
@@ -11,26 +11,106 @@ export function unwrapApiResult<T>(result: ApiResult<T>): T {
   return result.data as T
 }
 
-export function createHttpClient(onUnauthorized?: () => void): AxiosInstance {
+type RetryableRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean }
+export type RefreshTokenRequest = (refreshToken: string) => Promise<TokenVO>
+
+const authStorageKeys = ['token', 'refreshToken', 'tokenType', 'accessTtl', 'userInfo'] as const
+
+function saveTokens(tokens: TokenVO) {
+  sessionStorage.setItem('token', tokens.accessToken)
+  sessionStorage.setItem('refreshToken', tokens.refreshToken)
+  sessionStorage.setItem('tokenType', tokens.tokenType)
+  sessionStorage.setItem('accessTtl', String(tokens.accessTtl))
+}
+
+function clearStoredAuth() {
+  for (const key of authStorageKeys) sessionStorage.removeItem(key)
+}
+
+const requestTokenRefresh: RefreshTokenRequest = async (refreshToken) => {
+  const response = await axios.post<ApiResult<TokenVO>>('/api/user/refresh', { refreshToken }, { timeout: 5000 })
+  return unwrapApiResult(response.data)
+}
+
+let activeRefresh: Promise<TokenVO> | null = null
+let logoutInProgress = false
+
+/**
+ * 冻结刷新结果写回，并等待已发出的刷新完成，以便退出时撤销最新 Refresh Token。
+ */
+export async function beginLogout(): Promise<string | null> {
+  logoutInProgress = true
+  const pending = activeRefresh
+  if (pending) {
+    try {
+      return (await pending).refreshToken
+    } catch {
+      // 刷新失败时仍尝试撤销浏览器中原有的 Refresh Token。
+    }
+  }
+  return sessionStorage.getItem('refreshToken')
+}
+
+export function endLogout() {
+  logoutInProgress = false
+}
+
+export function createHttpClient(
+  onUnauthorized?: () => void,
+  refreshTokenRequest: RefreshTokenRequest = requestTokenRefresh,
+): AxiosInstance {
   const client = axios.create({ baseURL: '/api', timeout: 5000 })
+
   client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     const token = sessionStorage.getItem('token')
-    if (token) config.headers.set('Authorization', `Bearer ${token}`)
+    const tokenType = sessionStorage.getItem('tokenType') || 'Bearer'
+    if (token) config.headers.set('Authorization', `${tokenType} ${token}`)
     return config
   })
   client.interceptors.response.use(
     response => unwrapApiResult(response.data as ApiResult<unknown>) as any,
-    (error: AxiosError) => {
+    async (error: AxiosError) => {
       const status = error.response?.status
       if (status === 401) {
-        sessionStorage.removeItem('token'); sessionStorage.removeItem('userInfo'); onUnauthorized?.()
-        return Promise.reject(new ApiError('登录状态已失效，请重新登录', 401))
+        if (logoutInProgress) {
+          clearStoredAuth()
+          throw new ApiError('正在退出登录', 401)
+        }
+        const request = error.config as RetryableRequestConfig | undefined
+        const refreshToken = sessionStorage.getItem('refreshToken')
+
+        if (request && !request._retry && refreshToken) {
+          request._retry = true
+          let currentRefresh: Promise<TokenVO> | null = null
+          try {
+            activeRefresh ??= refreshTokenRequest(refreshToken)
+            currentRefresh = activeRefresh
+            const tokens = await currentRefresh
+            if (logoutInProgress) {
+              clearStoredAuth()
+              throw new ApiError('正在退出登录', 401)
+            }
+            saveTokens(tokens)
+            request.headers.set('Authorization', `${tokens.tokenType || 'Bearer'} ${tokens.accessToken}`)
+            return await client.request(request)
+          } catch {
+            clearStoredAuth()
+            if (!logoutInProgress) onUnauthorized?.()
+            throw new ApiError('登录状态已失效，请重新登录', 401)
+          } finally {
+            if (activeRefresh === currentRefresh) activeRefresh = null
+          }
+        }
+
+        clearStoredAuth()
+        onUnauthorized?.()
+        throw new ApiError('登录状态已失效，请重新登录', 401)
       }
-      if (error instanceof ApiError) return Promise.reject(error)
+      if (error instanceof ApiError) throw error
       const message = error.response?.data && typeof error.response.data === 'object' && 'msg' in error.response.data
         ? String((error.response.data as { msg?: string }).msg || '请求失败')
         : (error.message || '网络异常，请稍后重试')
-      return Promise.reject(new ApiError(message, status))
+      throw new ApiError(message, status)
     },
   )
   return client

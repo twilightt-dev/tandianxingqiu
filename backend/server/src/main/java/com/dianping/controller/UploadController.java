@@ -2,8 +2,8 @@ package com.dianping.controller;
 
 import com.dianping.config.UploadProperties;
 import com.dianping.constant.RedisConstants;
-import com.dianping.result.Result;
 import com.dianping.dto.UserDTO;
+import com.dianping.result.Result;
 import com.dianping.utils.UserHolder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

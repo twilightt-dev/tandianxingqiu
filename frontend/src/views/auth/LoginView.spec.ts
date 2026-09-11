@@ -15,8 +15,8 @@ describe('LoginView', () => {
 
   it('未同意协议时不提交', async () => {
     const wrapper = mountLogin()
-    await wrapper.get('[data-test="phone"]').setValue('13812345678')
-    await wrapper.get('[data-test="code"]').setValue('abc123')
+    await wrapper.get('[data-test="phone"]').setValue('19112345678')
+    await wrapper.get('[data-test="code"]').setValue('123456')
     await wrapper.get('form').trigger('submit.prevent')
     expect(wrapper.text()).toContain('请先同意用户协议')
     expect(signIn).not.toHaveBeenCalled()
@@ -25,7 +25,7 @@ describe('LoginView', () => {
   it('无效手机号时不提交', async () => {
     const wrapper = mountLogin()
     await wrapper.get('[data-test="phone"]').setValue('123')
-    await wrapper.get('[data-test="code"]').setValue('abc123')
+    await wrapper.get('[data-test="code"]').setValue('123456')
     await wrapper.get('[data-test="agreement"]').setValue(true)
     await wrapper.get('form').trigger('submit.prevent')
     expect(wrapper.text()).toContain('请输入有效的中国大陆手机号')
@@ -47,12 +47,20 @@ describe('LoginView', () => {
   it('合法表单调用登录', async () => {
     signIn.mockResolvedValue(undefined)
     const wrapper = mountLogin()
-    await wrapper.get('[data-test="phone"]').setValue('13812345678')
-    await wrapper.get('[data-test="code"]').setValue('abc123')
+    await wrapper.get('[data-test="phone"]').setValue('19112345678')
+    await wrapper.get('[data-test="code"]').setValue('123456')
     await wrapper.get('[data-test="agreement"]').setValue(true)
     await wrapper.get('form').trigger('submit.prevent')
-    expect(signIn).toHaveBeenCalledWith({ phone: '13812345678', code: 'abc123' })
+    expect(signIn).toHaveBeenCalledWith({ phone: '19112345678', loginType: 'code', verifyCode: '123456' })
     expect(push).toHaveBeenCalledWith('/')
+  })
+
+  it('验证码接口失败时显示服务端返回的错误信息', async () => {
+    sendCode.mockRejectedValueOnce(new Error('用户不存在，请先注册'))
+    const wrapper = mountLogin()
+    await wrapper.get('[data-test="phone"]').setValue('13916180491')
+    await wrapper.get('[data-test="send-code"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.text()).toContain('用户不存在，请先注册'))
   })
 
   it('仅在验证码发送成功后开始倒计时', async () => {
@@ -66,5 +74,6 @@ describe('LoginView', () => {
     await wrapper.get('[data-test="send-code"]').trigger('click')
     await Promise.resolve()
     expect(wrapper.get('[data-test="send-code"]').text()).toContain('60 秒后重试')
+    expect(sendCode).toHaveBeenLastCalledWith('13812345678')
   })
 })

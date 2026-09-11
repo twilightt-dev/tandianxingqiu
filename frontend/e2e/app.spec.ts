@@ -66,4 +66,14 @@ test.describe('探店星球核心交付回归', () => {
     expect(new URL(page.url()).searchParams.get('redirect')).toBe('/publish')
     await expect(page.getByRole('heading', { name: '验证码登录' })).toBeVisible()
   })
+
+  test('桌面端从“我的”跳转登录时表单不会被侧栏网格压窄', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', '仅在桌面项目验证')
+    await page.goto('/me')
+    await expect(page).toHaveURL(/\/login\?redirect=/)
+    const panel = page.locator('.auth-panel')
+    await expect(panel).toBeVisible()
+    const box = await panel.boundingBox()
+    expect(box?.width).toBeGreaterThanOrEqual(360)
+  })
 })

@@ -5,6 +5,14 @@ export interface ApiResult<T> {
   data?: T | null
 }
 
+/** 后端签发的 Access Token 与可轮换的 Refresh Token。 */
+export interface TokenVO {
+  accessToken: string
+  refreshToken: string
+  tokenType: string
+  accessTtl: number
+}
+
 /** 后端 Long 在 JSON 中的表示。 */
 export type Id = number
 

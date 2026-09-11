@@ -1,15 +1,21 @@
 package com.dianping.controller;
 
 
-import com.dianping.dto.LoginFormDTO;
+import com.dianping.VO.TokenVO;
+import com.dianping.dto.LoginDTO;
+import com.dianping.dto.RefreshTokenDTO;
+import com.dianping.dto.RegisterDTO;
 import com.dianping.dto.UserDTO;
 import com.dianping.entity.UserInfo;
 import com.dianping.result.Result;
+import com.dianping.security.TokenService;
 import com.dianping.service.IUserInfoService;
 import com.dianping.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
@@ -35,26 +41,72 @@ public class UserController {
     @Resource
     private IUserInfoService userInfoService;
 
+    @Autowired
+    private TokenService tokenService;
     /**
-     * 发送手机验证码
+     * 登录时发送手机验证码
      */
-    @PostMapping("/code")
-    @Operation(summary = "发送手机验证码")
-    public Result<Void> sendCode(@RequestParam("phone") String phone) {
+    @PostMapping("/login/code")
+    @Operation(summary = "登录时发送验证码")
+    public Result<Void> sendCodeWhenLogin(@RequestParam("phone") String phone) {
+        return userService.sendCodeWhenLogin(phone) ;
+    }
 
-        return userService.sendCode(phone) ;
+
+    /**
+     * 注册时发送验证码
+     * @param phone
+     * @return
+     */
+    @PostMapping("/register/code")
+    @Operation(summary = "注册时发送验证码")
+    public Result<Void> sendCodeWhenRegister(@RequestParam("phone") String phone){
+        return userService.sendCodeWhenRegister(phone) ;
     }
 
     /**
-     * 登录功能
-     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
+     * 登录接口
+     * @param loginDTO
+     * @return
      */
     @PostMapping("/login")
-    @Operation(summary = "用户登录")
-    //review：注解@RequestBody就是把前端传来的json反序列化为java对象
-    public Result<String> login(@RequestBody LoginFormDTO loginForm){
-        return userService.login(loginForm) ;
+    @Operation(summary = "登录")
+    public Result<TokenVO> login( @Valid @RequestBody LoginDTO loginDTO) {
+        return userService.login(loginDTO) ;
     }
+
+
+    /**
+     * 注册接口
+     * @param registerDTO
+     * @return
+     */
+    @Operation(summary = "用户注册")
+    @PostMapping("/register")
+    public Result<Void> register(
+            @Valid @RequestBody RegisterDTO registerDTO) {
+
+        return userService.register(registerDTO);
+    }
+
+
+
+
+    /**
+     * 刷新接口，用于刷新refreshToken
+     * @param refreshTokenDTO
+     * @return TokenVO
+     */
+    @PostMapping("/refresh")
+    @Operation(summary = "刷新 Token")
+    public Result<TokenVO> refresh(
+            @Valid @RequestBody RefreshTokenDTO refreshTokenDTO
+    ){
+        TokenVO tokenVO = tokenService.refresh(refreshTokenDTO.getRefreshToken()) ;
+        return Result.success(tokenVO) ;
+
+    }
+
 
     /**
      * 登出功能
@@ -62,8 +114,9 @@ public class UserController {
      */
     @PostMapping("/logout")
     @Operation(summary = "用户退出登录")
-    public Result<Void> logout(){
-        // JWT 是无状态的，服务端无需删除会话；前端负责删除本地 Token
+    public Result<Void> logout(
+            @Valid @RequestBody RefreshTokenDTO refreshTokenDTO) {
+        tokenService.revoke(refreshTokenDTO.getRefreshToken());
         return Result.success();
     }
 
