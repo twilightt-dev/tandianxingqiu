@@ -2,13 +2,23 @@ package com.dianping.constant;
 
 public class RedisConstants {
     /**
-     * redis里存验证码的key
+     * 登录时redis里存验证码的key
      */
     public static final String LOGIN_CODE_KEY = "login:code:";
+
+    /**
+     * 注册时redis里存验证码的key
+     */
+    public static final String REGISTER_CODE_KEY = "register:code:";
     /**
      * redis里存验证码的过期时间
      */
-    public static final Long LOGIN_CODE_TTL = 2L;
+    public static final Long CODE_TTL = 2L;
+    /**
+     * 同一手机号、同一用途验证码的最短重发间隔。
+     */
+    public static final String CODE_SEND_COOLDOWN_KEY = "code:cooldown:";
+    public static final Long CODE_SEND_COOLDOWN_TTL = 60L;
 
     public static final Long CACHE_NULL_TTL = 2L;
 

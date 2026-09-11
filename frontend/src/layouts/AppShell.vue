@@ -8,3 +8,9 @@ import DesktopSidebar from '@/components/navigation/DesktopSidebar.vue'
 const route = useRoute()
 const isAuthPage = computed(() => route.name === 'login' || route.name === 'password-login')
 </script>
+
+<style scoped>
+.is-auth-page .shell-body {
+  display: block;
+}
+</style>

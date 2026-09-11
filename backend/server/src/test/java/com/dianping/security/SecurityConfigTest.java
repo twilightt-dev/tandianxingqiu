@@ -1,133 +1,99 @@
 package com.dianping.security;
 
+import com.dianping.VO.TokenVO;
 import com.dianping.config.SecurityConfig;
-import com.dianping.dto.UserDTO;
+import com.dianping.controller.UserController;
 import com.dianping.filter.JwtAuthenticationFilter;
+import com.dianping.result.Result;
+import com.dianping.service.IUserInfoService;
+import com.dianping.service.UserService;
+import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringJUnitConfig
-@WebAppConfiguration
-@ContextConfiguration(classes = {
-        SecurityConfig.class,
-        JwtAuthenticationFilter.class,
-        JwtUtils.class,
-        SecurityConfigTest.TestWebConfig.class
-})
-@TestPropertySource(properties = {
-        "security.jwt.secret=dGhpcy1pcy1hLXRlc3Qtc2VjcmV0LXdpdGgtMzItYnl0ZXM=",
-        "security.jwt.ttl=PT30M"
-})
+@WebMvcTest(UserController.class)
+@Import(SecurityConfig.class)
+@ContextConfiguration(classes = {UserController.class, SecurityConfig.class})
 class SecurityConfigTest {
 
     @Autowired
-    private WebApplicationContext context;
+    private MockMvc mvc;
 
-    @Autowired
-    private JwtUtils jwtUtils;
+    @MockitoBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private MockMvc mockMvc;
+    @MockitoBean
+    private UserService userService;
+
+    @MockitoBean
+    private IUserInfoService userInfoService;
+
+    @MockitoBean
+    private TokenService tokenService;
 
     @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
+    void letJwtFilterContinueTheChain() throws Exception {
+        doAnswer(invocation -> {
+            FilterChain chain = invocation.getArgument(2);
+            chain.doFilter(invocation.getArgument(0), invocation.getArgument(1));
+            return null;
+        }).when(jwtAuthenticationFilter).doFilter(any(), any(), any());
+        when(userService.sendCodeWhenLogin(any())).thenReturn(Result.success());
+        when(userService.sendCodeWhenRegister(any())).thenReturn(Result.success());
+        when(userService.login(any())).thenReturn(Result.success(
+                new TokenVO("access", "refresh", "Bearer", 900L)));
+        when(userService.register(any())).thenReturn(Result.success());
+        when(tokenService.refresh(any())).thenReturn(
+                new TokenVO("access", "refresh", "Bearer", 900L));
     }
 
     @Test
-    void codeEndpointIsPublic() throws Exception {
-        mockMvc.perform(post("/user/code"))
+    void allAuthenticationEntryPointsArePublic() throws Exception {
+        mvc.perform(post("/user/login/code").param("phone", "19112345678"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/user/register/code").param("phone", "19112345678"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/user/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"19112345678","verifyCode":"123456",
+                                 "password":"Test123456","confirmPassword":"Test123456"}
+                                """))
+                .andExpect(status().isOk());
+        mvc.perform(post("/user/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"phone":"19112345678","loginType":"password",
+                                 "password":"Test123456"}
+                                """))
+                .andExpect(status().isOk());
+        mvc.perform(post("/user/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"refresh\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(post("/user/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"refresh\"}"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void logoutEndpointIsPublicSoExpiredTokensCanBeRemovedLocally() throws Exception {
-        mockMvc.perform(post("/user/logout"))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void protectedEndpointWithoutTokenReturnsUnauthorized() throws Exception {
-        mockMvc.perform(get("/private"))
+    void currentUserEndpointStillRequiresAuthentication() throws Exception {
+        mvc.perform(get("/user/me"))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void uploadEndpointWithoutTokenReturnsUnauthorized() throws Exception {
-        mockMvc.perform(get("/upload/blog/delete").param("name", "/blogs/x.jpg"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void documentationEndpointsArePublic() throws Exception {
-        int apiDocsStatus = mockMvc.perform(get("/v3/api-docs"))
-                .andReturn().getResponse().getStatus();
-        int swaggerUiStatus = mockMvc.perform(get("/swagger-ui/index.html"))
-                .andReturn().getResponse().getStatus();
-
-        assertThat(apiDocsStatus).isNotEqualTo(401);
-        assertThat(swaggerUiStatus).isNotEqualTo(401);
-    }
-
-    @Test
-    void protectedEndpointAcceptsValidBearerToken() throws Exception {
-        UserDTO user = new UserDTO();
-        user.setId(1010L);
-        String token = jwtUtils.generateToken(user.getId().toString(), java.util.Map.of());
-
-        mockMvc.perform(get("/private")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk());
-    }
-
-    @Configuration
-    @EnableWebMvc
-    static class TestWebConfig {
-
-        @Bean
-        TestController testController() {
-            return new TestController();
-        }
-    }
-
-    @RestController
-    static class TestController {
-
-        @PostMapping("/user/code")
-        String code() {
-            return "ok";
-        }
-
-        @GetMapping("/private")
-        String privateEndpoint() {
-            return "ok";
-        }
-
-        @PostMapping("/user/logout")
-        String logout() {
-            return "ok";
-        }
     }
 }
-

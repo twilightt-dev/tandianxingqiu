@@ -31,6 +31,6 @@ logging:
 
 security:
   jwt:
-    # 生产环境必须通过 JWT_SECRET 环境变量提供高强度密钥
     secret: ${JWT_SECRET}
-    ttl: PT2H
+    access-ttl: PT15M
+    refresh-ttl: P7D
