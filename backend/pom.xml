@@ -13,7 +13,7 @@
     </parent>
 
     <groupId>com.hmdp</groupId>
-    <artifactId>dianping</artifactId>
+    <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -32,7 +32,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lombok.version>1.18.42</lombok.version>
         <mybatis-plus.version>3.5.12</mybatis-plus.version>
-        <hutool.version>5.8.38</hutool.version>
         <mysql.version>9.4.0</mysql.version>
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>2.8.13</springdoc.version>
@@ -71,14 +70,6 @@
                 <artifactId>mybatis-plus-jsqlparser</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
-
-            <!-- 工具包 -->
-            <dependency>
-                <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
-                <version>${hutool.version}</version>
-            </dependency>
-
             <!-- 数据库驱动 -->
             <dependency>
                 <groupId>com.mysql</groupId>

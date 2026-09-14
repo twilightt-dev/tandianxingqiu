@@ -3,7 +3,7 @@ package com.dianping.controller;
 
 import com.dianping.result.Result;
 import com.dianping.entity.ShopType;
-import com.dianping.service.IShopTypeService;
+import com.dianping.service.ShopTypeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,13 +26,11 @@ import java.util.List;
 @Tag(name = "门店分类接口")
 public class ShopTypeController {
     @Resource
-    private IShopTypeService typeService;
+    private ShopTypeService typeService;
 
     @GetMapping("list")
     @Operation(summary = "查询门店分类列表")
     public Result<List<ShopType>> queryTypeList() {
-        List<ShopType> typeList = typeService
-                .query().orderByAsc("sort").list();
-        return Result.success(typeList);
+        return typeService.queryTypeList();
     }
 }

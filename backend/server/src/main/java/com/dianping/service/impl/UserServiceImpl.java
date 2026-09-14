@@ -1,6 +1,6 @@
 package com.dianping.service.impl;
 
-import cn.hutool.core.util.RandomUtil;
+import java.security.SecureRandom;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.dianping.VO.TokenVO;
@@ -27,6 +27,25 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final char[] RANDOM_ALPHANUMERIC = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
+
+    private static String randomDigits(int length) {
+        StringBuilder result = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            result.append(SECURE_RANDOM.nextInt(10));
+        }
+        return result.toString();
+    }
+
+    private static String randomAlphaNumeric(int length) {
+        StringBuilder result = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            result.append(RANDOM_ALPHANUMERIC[SECURE_RANDOM.nextInt(RANDOM_ALPHANUMERIC.length)]);
+        }
+        return result.toString();
+    }
 
     private static final DefaultRedisScript<Long> CONSUME_CODE_SCRIPT =
             new DefaultRedisScript<>(
@@ -67,7 +86,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return Result.error("验证码请求过于频繁，请稍后再试");
         }
         // 格式正确就生成验证码并保存到 Redis
-        String code = RandomUtil.randomNumbers(6);
+        String code = randomDigits(6);
         log.debug("验证码已生成：{}" , code) ;
         stringRedisTemplate.opsForValue().set(
                 RedisConstants.LOGIN_CODE_KEY + phone,
@@ -97,7 +116,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         // 格式正确就生成验证码并保存到 Redis
-        String code = RandomUtil.randomNumbers(6);
+        String code = randomDigits(6);
         log.debug("验证码已生成：{}" , code) ;
         stringRedisTemplate.opsForValue().set(
                 RedisConstants.REGISTER_CODE_KEY + phone,
@@ -193,7 +212,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         );
         user.setNickName(
                 SystemConstants.USER_NICK_NAME_PREFIX
-                        + RandomUtil.randomString(10)
+                        + randomAlphaNumeric(10)
         );
 
         // 5.保存数据库

@@ -7,7 +7,7 @@
 
     <parent>
         <groupId>com.hmdp</groupId>
-        <artifactId>dianping</artifactId>
+        <artifactId>backend</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -50,13 +50,6 @@
             <groupId>com.hmdp</groupId>
             <artifactId>pojo</artifactId>
         </dependency>
-
-        <!-- RegexUtils、PasswordEncoder 等工具类 -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-        </dependency>
-
         <!-- PasswordEncoder 使用 DigestUtils -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -75,6 +68,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+
+        <!--    json转换-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
 

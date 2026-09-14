@@ -1,6 +1,6 @@
 package com.dianping.utils;
 
-import cn.hutool.core.util.StrUtil;
+import org.springframework.util.StringUtils;
 
 /**
  * @author 虎哥
@@ -34,7 +34,7 @@ public class RegexUtils {
 
     // 校验是否不符合正则格式
     private static boolean mismatch(String str, String regex){
-        if (StrUtil.isBlank(str)) {
+        if (!StringUtils.hasText(str)) {
             return true;
         }
         return !str.matches(regex);

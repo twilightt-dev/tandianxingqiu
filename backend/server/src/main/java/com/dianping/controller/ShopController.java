@@ -1,13 +1,13 @@
 package com.dianping.controller;
 
 
-import cn.hutool.core.util.StrUtil;
+import org.springframework.util.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import com.dianping.constant.SystemConstants;
 import com.dianping.result.Result;
 import com.dianping.entity.Shop;
-import com.dianping.service.IShopService;
+import com.dianping.service.ShopService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +25,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/shop")
-@Tag(name = "门店接口")
+@Tag(name = "商铺接口")
 public class ShopController {
 
     @Resource
-    public IShopService shopService;
+    public ShopService shopService;
 
     /**
      * 根据id查询商铺信息
@@ -37,9 +37,10 @@ public class ShopController {
      * @return 商铺详情数据
      */
     @GetMapping("/{id}")
-    @Operation(summary = "根据 ID 查询门店")
+    @Operation(summary = "根据 ID 查询商铺")
     public Result<Shop> queryShopById(@PathVariable("id") Long id) {
-        return Result.success(shopService.getById(id));
+
+        return shopService.queryById(id);
     }
 
     /**
@@ -48,7 +49,7 @@ public class ShopController {
      * @return 商铺id
      */
     @PostMapping
-    @Operation(summary = "新增门店")
+    @Operation(summary = "新增商铺")
     public Result<Long> saveShop(@RequestBody Shop shop) {
         // 写入数据库
         shopService.save(shop);
@@ -62,11 +63,10 @@ public class ShopController {
      * @return 无
      */
     @PutMapping
-    @Operation(summary = "更新门店")
+    @Operation(summary = "更新商铺")
     public Result<Void> updateShop(@RequestBody Shop shop) {
-        // 写入数据库
-        shopService.updateById(shop);
-        return Result.success();
+
+        return shopService.update(shop) ;
     }
 
     /**
@@ -103,7 +103,7 @@ public class ShopController {
     ) {
         // 根据类型分页查询
         Page<Shop> page = shopService.query()
-                .like(StrUtil.isNotBlank(name), "name", name)
+                .like(StringUtils.hasText(name), "name", name)
                 .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
         // 返回数据
         return Result.success(page.getRecords());
