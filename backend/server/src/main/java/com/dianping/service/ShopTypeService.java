@@ -2,6 +2,9 @@ package com.dianping.service;
 
 import com.dianping.entity.ShopType;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dianping.result.Result;
+
+import java.util.List;
 
 /**
  * <p>
@@ -11,6 +14,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author 虎哥
  * @since 2021-12-22
  */
-public interface IShopTypeService extends IService<ShopType> {
+public interface ShopTypeService extends IService<ShopType> {
 
+    Result<List<ShopType>> queryTypeList();
 }
