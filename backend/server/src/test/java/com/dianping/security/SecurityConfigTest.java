@@ -5,7 +5,7 @@ import com.dianping.config.SecurityConfig;
 import com.dianping.controller.UserController;
 import com.dianping.filter.JwtAuthenticationFilter;
 import com.dianping.result.Result;
-import com.dianping.service.IUserInfoService;
+import com.dianping.service.UserInfoService;
 import com.dianping.service.UserService;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +40,7 @@ class SecurityConfigTest {
     private UserService userService;
 
     @MockitoBean
-    private IUserInfoService userInfoService;
+    private UserInfoService userInfoService;
 
     @MockitoBean
     private TokenService tokenService;

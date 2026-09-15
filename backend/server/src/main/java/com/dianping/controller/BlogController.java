@@ -8,7 +8,7 @@ import com.dianping.utils.UserHolder;
 import com.dianping.result.Result;
 import com.dianping.entity.Blog;
 import com.dianping.entity.User;
-import com.dianping.service.IBlogService;
+import com.dianping.service.BlogService;
 import com.dianping.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,7 +32,7 @@ import java.util.List;
 public class BlogController {
 
     @Resource
-    private IBlogService blogService;
+    private BlogService blogService;
     @Resource
     private UserService userService;
 

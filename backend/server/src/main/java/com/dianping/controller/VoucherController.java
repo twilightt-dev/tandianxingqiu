@@ -3,7 +3,7 @@ package com.dianping.controller;
 
 import com.dianping.result.Result;
 import com.dianping.entity.Voucher;
-import com.dianping.service.IVoucherService;
+import com.dianping.service.VoucherService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -11,21 +11,14 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
 import java.util.List;
 
-/**
- * <p>
- *  前端控制器
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
+
 @RestController
 @RequestMapping("/voucher")
 @Tag(name = "优惠券接口")
 public class VoucherController {
 
     @Resource
-    private IVoucherService voucherService;
+    private VoucherService voucherService;
 
     /**
      * 新增普通券
@@ -61,4 +54,7 @@ public class VoucherController {
     public Result<List<Voucher>> queryVoucherOfShop(@PathVariable("shopId") Long shopId) {
        return voucherService.queryVoucherOfShop(shopId);
     }
+
+
+
 }

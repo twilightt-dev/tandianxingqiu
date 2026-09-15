@@ -1,6 +1,6 @@
 package com.dianping.service;
 
-import com.dianping.entity.UserInfo;
+import com.dianping.entity.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -9,8 +9,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author 虎哥
- * @since 2021-12-24
+ * @since 2021-12-22
  */
-public interface IUserInfoService extends IService<UserInfo> {
+public interface BlogService extends IService<Blog> {
 
 }

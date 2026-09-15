@@ -2,7 +2,7 @@ package com.dianping.service.impl;
 
 import com.dianping.entity.SeckillVoucher;
 import com.dianping.mapper.SeckillVoucherMapper;
-import com.dianping.service.ISeckillVoucherService;
+import com.dianping.service.SeckillVoucherService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2022-01-04
  */
 @Service
-public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper, SeckillVoucher> implements ISeckillVoucherService {
+public class SeckillVoucherServiceImpl extends ServiceImpl<SeckillVoucherMapper, SeckillVoucher> implements SeckillVoucherService {
 
 }
