@@ -2,7 +2,7 @@ package com.dianping.service.impl;
 
 import com.dianping.entity.UserInfo;
 import com.dianping.mapper.UserInfoMapper;
-import com.dianping.service.IUserInfoService;
+import com.dianping.service.UserInfoService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2021-12-24
  */
 @Service
-public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> implements IUserInfoService {
+public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> implements UserInfoService {
 
 }

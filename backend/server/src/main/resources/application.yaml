@@ -20,6 +20,8 @@ spring:
           max-idle: 10
           min-idle: 1
           time-between-eviction-runs: 10s
+
+
 app:
   upload:
     directory: ${UPLOAD_DIR:./uploads}

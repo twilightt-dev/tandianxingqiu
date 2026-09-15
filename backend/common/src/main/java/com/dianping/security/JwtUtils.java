@@ -34,7 +34,7 @@ public class JwtUtils {
         }
 
         this.secretKey = Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(properties.getSecret())
+                Decoders.BASE64URL.decode(properties.getSecret())
         );
         this.properties = properties;
     }

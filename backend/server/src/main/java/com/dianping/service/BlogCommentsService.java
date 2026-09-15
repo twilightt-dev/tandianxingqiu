@@ -1,6 +1,6 @@
 package com.dianping.service;
 
-import com.dianping.entity.Blog;
+import com.dianping.entity.BlogComments;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author 虎哥
  * @since 2021-12-22
  */
-public interface IBlogService extends IService<Blog> {
+public interface BlogCommentsService extends IService<BlogComments> {
 
 }

@@ -9,7 +9,7 @@ import com.dianping.dto.UserDTO;
 import com.dianping.entity.UserInfo;
 import com.dianping.result.Result;
 import com.dianping.security.TokenService;
-import com.dianping.service.IUserInfoService;
+import com.dianping.service.UserInfoService;
 import com.dianping.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +39,7 @@ public class UserController {
     private UserService userService;
 
     @Resource
-    private IUserInfoService userInfoService;
+    private UserInfoService userInfoService;
 
     @Autowired
     private TokenService tokenService;

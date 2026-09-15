@@ -2,7 +2,7 @@ package com.dianping.service.impl;
 
 import com.dianping.entity.Blog;
 import com.dianping.mapper.BlogMapper;
-import com.dianping.service.IBlogService;
+import com.dianping.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +15,6 @@ import org.springframework.stereotype.Service;
  * @since 2021-12-22
  */
 @Service
-public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IBlogService {
+public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
 
 }

@@ -45,7 +45,11 @@ public class RedisConstants {
     //互斥锁的ttl，30秒，必须大于缓存重建时间
     public static final Long LOCK_SHOP_TTL = 30L;
 
+    //秒杀券的key
     public static final String SECKILL_STOCK_KEY = "seckill:stock:";
+
+    //订单的key
+    public static final String VOUCHER_ORDER_KEY = "voucher:order:";
     public static final String BLOG_LIKED_KEY = "blog:liked:";
     public static final String FEED_KEY = "feed:";
     public static final String SHOP_GEO_KEY = "shop:geo:";
