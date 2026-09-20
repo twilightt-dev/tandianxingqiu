@@ -49,6 +49,8 @@ public class RedisConstants {
     public static final String SECKILL_STOCK_KEY = "seckill:stock:";
     //记录秒杀券对应的用户
     public static final String SECKILL_USER_KEY = "seckill:user:";
+    //秒杀订单消息队列的名称
+    public static final String SECKILL_STREAM = "seckill.orders" ;
 
     //订单落库时的锁对象
     public static final String ORDER_LOCK_KEY = "order:lock:";
