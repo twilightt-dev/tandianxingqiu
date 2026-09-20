@@ -13,6 +13,7 @@ import com.dianping.service.SeckillVoucherService;
 import com.dianping.service.VoucherOrderPersistService;
 import com.dianping.service.VoucherOrderService;
 import com.dianping.utils.RedisIdWorker;
+import com.dianping.utils.SimpleRedisLock;
 import com.dianping.utils.UserHolder;
 
 import jakarta.annotation.PostConstruct;
