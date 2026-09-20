@@ -12,13 +12,19 @@ import com.dianping.service.SeckillVoucherService;
 import com.dianping.service.VoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dianping.utils.RedisIdWorker;
+import com.dianping.utils.SimpleRedisLock;
 import com.dianping.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 
 @Service
@@ -27,6 +33,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private SeckillVoucherService seckillVoucherService;
     @Autowired
     private RedisIdWorker redisIdWorker;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
 
     @Override
@@ -44,18 +55,31 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if(seckillVoucher.getEndTime().isBefore(LocalDateTime.now())){
             return Result.error("活动已结束！") ;
         }
-
         //判断库存是否充足
         if(seckillVoucher.getStock() < 1){
             return Result.error("库存不足！") ;
         }
-        //综合处理一人一单
-        Long userId = UserHolder.getUser().getId();
-        synchronized (userId.toString().intern()) {
-            VoucherOrderService proxy =
-                    (VoucherOrderService) AopContext.currentProxy();
 
+        //用分布式锁综合处理一人一单
+        Long userId = UserHolder.getUser().getId();
+        //创建锁对象(新增代码)
+        //SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        RLock lock = redissonClient.getLock("lock:order:" + userId) ;
+        //获取锁对象  这里不传入参数，一人一单要求获取失败直接返回
+        boolean getLock = lock.tryLock();
+        //加锁失败
+        if (!getLock) {
+            return Result.error("不允许重复下单");
+        }
+        //获取锁成功就创建订单
+        try {
+            //获取代理对象(事务)
+            VoucherOrderService proxy = (VoucherOrderService) 	 		AopContext.currentProxy();
             return proxy.createVoucherOrder(voucherId);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 
